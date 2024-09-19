@@ -204,9 +204,12 @@ namespace UnityEditor
 
                 string[] dataLines = csvFile.text.Split('\n');
                 string variables = dataLines[0].Trim();
+                string explanations = dataLines[1].Trim();
                 if (string.IsNullOrEmpty(variables)) return string.Empty;
+                if (string.IsNullOrEmpty(explanations)) return string.Empty;
 
                 string[] variable = variables.Split(',');
+                string[] explanation = explanations.Split(',');
 
                 //== 변수명 및 열거형 저장
                 List<int> enumIndex = ListPool<int>.Get();
@@ -218,11 +221,11 @@ namespace UnityEditor
                     if (type == "enum")
                     {
                         enumIndex.Add(i);
-                        result.AppendLine(($"{Tap(tapCount)}public {GetVariableName(variable[i], false)} {GetVariableName(variable[i])};"));
+                        result.AppendLine(($"{Tap(tapCount)}public {GetVariableName(variable[i], false)} {GetVariableName(variable[i])};\t // {explanation[i]}"));
                     }
                     else
                     {
-                        result.AppendLine(($"{Tap(tapCount)}public {type} {GetVariableName(variable[i])};"));
+                        result.AppendLine(($"{Tap(tapCount)}public {type} {GetVariableName(variable[i])};\t // {explanation[i]}"));
                     }
                 }
 
