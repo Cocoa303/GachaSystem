@@ -1,0 +1,6 @@
+﻿n_UpgradeBelowLimit,n_UpgradeCost,n_NormalUpgradeValue,n_RareUpgradeValue,n_EpicUpgradeValue
+강화 단계 이하 조건,단계 별 요구 비용,일반 등급 강화 능력치 증가량,고급 등급 강화 능력치 증가량,희귀 등급 강화 능력치 증가량
+10,2,1,10,100
+100,3,2,20,200
+1000,4,3,30,300
+10000,5,4,40,400

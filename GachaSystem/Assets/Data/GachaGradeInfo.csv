@@ -1,0 +1,5 @@
+﻿n_GachaID,n_NormalGachaRate,n_RareGachaRate,n_EpicGachaRate,n_GachaRandombagID
+뽑기 메뉴 별 고유 ID,일반 등급 아이템의 드랍 확률,고급 등급 아이템의 드랍 확률,에픽 아이템의 드랍 확률,뽑기 랜덤백 테이블의 그룹 ID
+10000,52,33,15,1000
+20000,52,33,15,2000
+30000,52,33,15,3000
