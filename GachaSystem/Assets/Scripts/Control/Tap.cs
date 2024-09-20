@@ -8,7 +8,8 @@ namespace Control.UI
     {
         [SerializeField] List<Common.UI.Tap<T, GameObject>> uis;
         [SerializeField] T firstOpen;
-        [SerializeField, ReadOnly] Common.UI.Tap<T, GameObject> openTap;
+
+        private Common.UI.Tap<T, GameObject> openTap;
 
         #region Setting
         [Space]
@@ -35,7 +36,7 @@ namespace Control.UI
 
         //== Title Font
         [SerializeField, ShowIf("titleFontChange")] Font selectTitleFont;
-        [SerializeField, ShowIf("titleFontChange")] Font unselectFont;
+        [SerializeField, ShowIf("titleFontChange")] Font unselectTitleFont;
 
         //== Title Font Size
         [SerializeField, ShowIf("titleSizeChange")] int selectTitleSize;
@@ -76,7 +77,6 @@ namespace Control.UI
                 {
                     SetSelectedTap(uis[findIndex]);
                     openTap = uis[findIndex];
-                    openTap.target.SetActive(true);
                 }
             }
             else
@@ -85,9 +85,9 @@ namespace Control.UI
                 if (findIndex != -1)
                 {
                     SetUnselectedTap(openTap);
+
                     SetSelectedTap(uis[findIndex]);
                     openTap = uis[findIndex];
-                    openTap.target.SetActive(true);
                 }
             }
         }
@@ -98,7 +98,6 @@ namespace Control.UI
             {
                 SetUnselectedTap(uis[findIndex]);
                 uis[findIndex].DisSelectEvent();
-                uis[findIndex].target.SetActive(false);
             }
         }
 
@@ -106,12 +105,12 @@ namespace Control.UI
         {
             if (backgroundChange)
             {
-                if (backgroundSpriteChange)
+                if (backgroundSpriteChange && tap.background != null)
                 {
                     tap.background.sprite = selectBackgroundSprite;
                 }
 
-                if (backgroundColorChange)
+                if (backgroundColorChange && tap.background != null)
                 {
                     tap.background.color = selectBackgroundColor;
                 }
@@ -119,54 +118,58 @@ namespace Control.UI
 
             if (titleChange)
             {
-                if (titleFontChange)
+                if (titleFontChange && tap.title != null)
                 {
                     tap.title.font = selectTitleFont;
                 }
 
-                if (titleSizeChange)
+                if (titleSizeChange && tap.title != null)
                 {
                     tap.title.fontSize = selectTitleSize;
                 }
 
-                if (titleColorChange)
+                if (titleColorChange && tap.title != null)
                 {
                     tap.title.color = selectTitleColor;
                 }
             }
+
+            tap.target.SetActive(true);
         }
         private void SetUnselectedTap(Common.UI.Tap<T, GameObject> tap)
         {
             if (backgroundChange)
             {
-                if (backgroundSpriteChange)
+                if (backgroundSpriteChange && tap.background != null)
                 {
-                    tap.background.sprite = selectBackgroundSprite;
+                    tap.background.sprite = unselectBackgroundSprite;
                 }
 
-                if (backgroundColorChange)
+                if (backgroundColorChange && tap.background != null)
                 {
-                    tap.background.color = selectBackgroundColor;
+                    tap.background.color = unselectBackgroundColor;
                 }
             }
 
             if (titleChange)
             {
-                if (titleFontChange)
+                if (titleFontChange && tap.title != null)
                 {
-                    tap.title.font = selectTitleFont;
+                    tap.title.font = unselectTitleFont;
                 }
 
-                if (titleSizeChange)
+                if (titleSizeChange && tap.title != null)
                 {
-                    tap.title.fontSize = selectTitleSize;
+                    tap.title.fontSize = unselectTitleSize;
                 }
 
-                if (titleColorChange)
+                if (titleColorChange && tap.title != null)
                 {
-                    tap.title.color = selectTitleColor;
+                    tap.title.color = unselectTitleColor;
                 }
             }
+
+            tap.target.SetActive(false);
         }
     }
 }
