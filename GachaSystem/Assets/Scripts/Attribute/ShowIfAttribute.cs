@@ -1,11 +1,11 @@
-using System;
+ï»¿using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Reflection;
 using UnityEditor;
 
-//== ÇØ´ç ÄÚµå´Â ¾Æ·¡ ¸µÅ©ÀÇ ÄÚµå¸¦ »ç¿ëÇÏ±â ½±°Ô ¼öÁ¤ÇÑ ÄÚµåÀÔ´Ï´Ù.
+//== í•´ë‹¹ ì½”ë“œëŠ” ì•„ë˜ ë§í¬ì˜ ì½”ë“œë¥¼ ì‚¬ìš©í•˜ê¸° ì‰½ê²Œ ìˆ˜ì •í•œ ì½”ë“œì…ë‹ˆë‹¤.
 //== https://github.com/Deadcows/MyBox/blob/master/Extensions/MyCollections.cs#L120
 
 /// <summary>
