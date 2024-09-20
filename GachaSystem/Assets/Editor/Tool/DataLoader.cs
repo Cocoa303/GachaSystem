@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using UnityEngine;
 using UnityEngine.Pool;
 using System.Reflection;
+using System.Collections;
 
 #if UNITY_EDITOR
 namespace UnityEditor
@@ -73,7 +73,7 @@ namespace UnityEditor
             #endregion
         }
 
-        private (string[,] data, int row, int col) CSVLoad()
+        private (string[,] data, int row, int col, bool isList) CSVLoad()
         {
             string[] lines = csvFile.text.Split('\n');
             int row = lines.Length;
@@ -94,14 +94,21 @@ namespace UnityEditor
                 }
             }
 
-            return (csvData, row, col);
+            var ids = new System.Collections.Generic.HashSet<string>();
+            for (int i = 0; i < col; i++)
+            {
+                ids.Add(csvData[0, i]);
+            }
+
+            return (csvData, row, col, (row != ids.Count));
         }
 
         private void Create()
         {
             StringBuilder csFile = new StringBuilder(string.Empty);
 
-            csFile.AppendLine("using UnityEngine;\n");
+            csFile.AppendLine("using UnityEngine;");
+            csFile.AppendLine("using System.Collections.Generic;\n");
             csFile.AppendLine("namespace Data");
             csFile.AppendLine("{");
             csFile.AppendLine($"\t[CreateAssetMenu(fileName = \"Data\", menuName = \"Data/{csvFile.name}\")]");
@@ -138,7 +145,8 @@ namespace UnityEditor
             System.IO.Directory.CreateDirectory(scriptablePath);
 
             var csv = CSVLoad();
-            List<string> variables = ListPool<string>.Get();
+            
+            var variables = ListPool<string>.Get();
             for (int col = 0; col < csv.col; col++)
             {
                 variables.Add(GetVariableName(csv.data[0, col]));
@@ -149,16 +157,25 @@ namespace UnityEditor
             for (int row = 2; row < csv.row; row++)
             {
                 if (csv.data[row, 0] == null || csv.data[row, 0].CompareTo(string.Empty) == 0) continue;
+                string assetName = csv.data[row, 0];
+                string path = scriptablePath + "/" + assetName + ".asset";
 
-                ScriptableObject asset = ScriptableObject.CreateInstance(type);
+                //== 중복 검사 [ ID를 제외한 데이터를 List로 변경 ]
+                bool duplicated = false;
+                ScriptableObject asset = AssetDatabase.LoadAssetAtPath<ScriptableObject>(path);
+                if (asset == null) asset = ScriptableObject.CreateInstance(type);
+                else duplicated = true;
 
                 for (int col = 0; col < csv.col; col++)
                 {
                     SetProperty(type, asset, variables[col], csv.data[row, col]);
                 }
 
-                asset.name = csv.data[row, 0];
-                AssetDatabase.CreateAsset(asset, scriptablePath + "/" + asset.name + ".asset");
+                asset.name = assetName;
+                if (!duplicated)
+                {
+                    AssetDatabase.CreateAsset(asset, scriptablePath + "/" + assetName + ".asset");
+                }
             }
             AssetDatabase.SaveAssets();
             EditorUtility.FocusProjectWindow();
@@ -166,20 +183,50 @@ namespace UnityEditor
 
             ListPool<string>.Release(variables);
 
-            void SetProperty(System.Type type, ScriptableObject obj, string fieldName, object value)
+            void SetProperty(System.Type type, ScriptableObject obj, string fieldName, string value)
             {
                 var field = type.GetField(fieldName, BindingFlags.Public | BindingFlags.Instance);
 
                 if (field != null)
                 {
-                    if (field.FieldType.IsEnum)
+                    var fieldType = field.FieldType;
+
+                    if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(System.Collections.Generic.List<>))
                     {
-                        object enumValue = System.Enum.Parse(field.FieldType, value.ToString());
+                        IList list = field.GetValue(obj) as IList;
+
+                        //== 새로운 List 인스턴스 생성
+                        if (list == null)
+                        {
+                            System.Type elementType = fieldType.GetGenericArguments()[0]; // 제네릭의 내부 타입 추출
+                            System.Type listType = typeof(System.Collections.Generic.List<>).MakeGenericType(elementType);
+                            list = (IList)System.Activator.CreateInstance(listType);
+
+                            field.SetValue(obj, list);
+                        }
+
+                        //==  값이 내부 타입으로 변환 가능할 경우에 추가
+                        System.Type listElementType = fieldType.GetGenericArguments()[0];
+                        if(listElementType.IsEnum)
+                        {
+                            object convertedValue = System.Enum.Parse(listElementType, value, true);
+                            list.Add(convertedValue);
+                        }
+                        else
+                        {
+                            object convertedValue = System.Convert.ChangeType(value, listElementType);
+                            list.Add(convertedValue);
+                        }
+                    }
+                    //== 열거형 검증
+                    else if (fieldType.IsEnum)
+                    {
+                        object enumValue = System.Enum.Parse(fieldType, value.ToString());
                         field.SetValue(obj, enumValue);
                     }
                     else
                     {
-                        field.SetValue(obj, System.Convert.ChangeType(value, field.FieldType));
+                        field.SetValue(obj, System.Convert.ChangeType(value, fieldType));
                     }
                 }
                 else
@@ -211,17 +258,22 @@ namespace UnityEditor
                 string[] variable = variables.Split(',');
                 string[] explanation = explanations.Split(',');
 
+                var csv = CSVLoad();
+
                 //== 변수명 및 열거형 저장
-                List<int> enumIndex = ListPool<int>.Get();
+                var enumIndex = ListPool<int>.Get();
                 for (int i = 0; i < variable.Length; i++)
                 {
-                    string type = GetVariableType(variable[i]);
-                    if (type == string.Empty) continue;
+                    bool isList = csv.isList;
+                    if (i == 0 /* ID */) { isList = false; }
 
-                    if (type == "enum")
+                    string type = GetVariableType(variable[i], isList);
+                    if (type == string.Empty) continue;
+                    
+                    if (type.Contains("enum"))
                     {
                         enumIndex.Add(i);
-                        result.AppendLine(($"{Tap(tapCount)}public {GetVariableName(variable[i], false)} {GetVariableName(variable[i])};\t // {explanation[i]}"));
+                        result.AppendLine(($"{Tap(tapCount)}public {GetVariableName(variable[i], false, isList)} {GetVariableName(variable[i])};\t // {explanation[i]}"));
                     }
                     else
                     {
@@ -231,10 +283,9 @@ namespace UnityEditor
 
                 if (enumIndex.Count > 0)
                 {
-                    var csv = CSVLoad();
                     for (int i = 0; i < enumIndex.Count; i++)
                     {
-                        HashSet<string> names = HashSetPool<string>.Get();
+                        var names = HashSetPool<string>.Get();
 
                         //== 변수명 / 설명 구간 제외
                         for (int j = 2; j < csv.row; j++)
@@ -256,39 +307,54 @@ namespace UnityEditor
             return string.Empty;
         }
 
-        private string GetVariableType(string data)
+        private string GetVariableType(string data, bool isList = false)
         {
             for (int i = 0; i < typeRules.Length; i++)
             {
                 if (data.Contains(typeRules[i].handle))
                 {
-                    return typeRules[i].type;
-                }
-            }
-
-            return string.Empty;
-        }
-        private string GetVariableName(string data, bool toLower = true)
-        {
-            for (int i = 0; i < typeRules.Length; i++)
-            {
-                if (data.Contains(typeRules[i].handle))
-                {
-                    string result = data.Replace(typeRules[i].handle, string.Empty);
-                    if (toLower)
+                    if (isList)
                     {
-                        return char.ToLower(result[0]) + result.Substring(1).Trim();
+                        return $"List<{typeRules[i].type}>";
                     }
                     else
                     {
-                        return result.Trim();
+                        return typeRules[i].type;
                     }
+
                 }
             }
 
             return string.Empty;
         }
-        private string GetEnumDefinition(string name, in HashSet<string> datas, int tapCount = 1)
+        private string GetVariableName(string data, bool toLower = true, bool isList = false)
+        {
+            string result = string.Empty;
+            for (int i = 0; i < typeRules.Length; i++)
+            {
+                if (data.Contains(typeRules[i].handle))
+                {
+                    string separated = data.Replace(typeRules[i].handle, string.Empty);
+                    if (toLower)
+                    {
+                        result = char.ToLower(separated[0]) + separated.Substring(1).Trim();
+                    }
+                    else
+                    {
+                        result = separated.Trim();
+                    }
+                }
+            }
+
+            if (result != string.Empty && isList)
+            {
+                result = $"List<{result}>";
+            }
+
+            return result;
+        }
+
+        private string GetEnumDefinition(string name, in System.Collections.Generic.HashSet<string> datas, int tapCount = 1)
         {
             StringBuilder builder = new StringBuilder();
             builder.Append($"{Tap(tapCount)}public enum {name}\n");
