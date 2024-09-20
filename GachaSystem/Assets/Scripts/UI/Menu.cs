@@ -5,11 +5,11 @@ using UnityEngine.EventSystems;
 
 namespace UI
 {
-    public class Menu : UIBehaviour, IUIInitialize
+    public class Menu : Base
     {
         [SerializeField] Control.UI.Tap<string> controlTap;
 
-        public void Initialize()
+        public override void Initialize()
         {
             controlTap.Initialize();
         }

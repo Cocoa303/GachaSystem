@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
+using BaseUI = global::UI.Base;
+
 namespace Manager
 {
     public class UI : Util.Inherited.Singleton<UI>
@@ -11,7 +13,7 @@ namespace Manager
         [SerializeField] private Canvas canvas;
         [SerializeField] private RectTransform uiParent;
 
-        [SerializeField] private List<IUIInitialize> initializes;
+        [SerializeField] private List<BaseUI> initializes;
 
         private void OnValidate()
         {
