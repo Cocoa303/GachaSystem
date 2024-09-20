@@ -77,8 +77,15 @@ namespace Manager
                     continue;
                 }
                 gachaRandomBags.Add(findGachaData[i].dropID, findGachaData[i]);
-                if (itemTypeDic.ContainsKey(findGachaData[i].gachaRewardID)) continue;
-                itemTypeDic.Add(findGachaData[i].gachaRewardID, findGachaData[i].gachaRewardItemType);
+
+                int length = findGachaData[i].gachaRewardID.Count;
+                for (int j = 0; j < length; j++)
+                {
+                    if (itemTypeDic.ContainsKey(findGachaData[i].gachaRewardID[j])) continue;
+                    itemTypeDic.Add(findGachaData[i].gachaRewardID[j], findGachaData[i].gachaRewardItemType[j]);
+                }
+
+                
             }
 
             #region 저장된 데이터 호출
@@ -119,8 +126,11 @@ namespace Manager
             {
                 if (!items.ContainsKey(id))
                 {
+                    Debug.Log(itemDic[id]);
+                    Debug.Log(itemTypeDic[id]);
+
                     items.Add(id, new Item(
-                         itemDic[id],
+                        itemDic[id],
                         (saveItemDic.ContainsKey(id)) ? saveItemDic[id].hasCount : 0,
                         (saveItemDic.ContainsKey(id)) ? saveItemDic[id].level : 0,
                         itemTypeDic[id]
@@ -165,4 +175,3 @@ namespace Manager
         }
     }
 }
-
