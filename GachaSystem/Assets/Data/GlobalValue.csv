@@ -1,7 +1,8 @@
-﻿s_GlobalValueID,f_Value
+s_GlobalValueID,f_Value
 전역변수로 사용할 대상,고정 상수 값
 n_RefillMoneyInterval,1
 n_RefillMoneyCount,0.75
 n_DefaultMoneyCount,500
 n_RequireGachaPrice,100
 n_MaxMoneyLimit,100000
+n_MinMoneyToGet,100

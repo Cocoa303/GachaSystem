@@ -95,12 +95,12 @@ namespace UnityEditor
             }
 
             var ids = new System.Collections.Generic.HashSet<string>();
-            for (int i = 0; i < col; i++)
+            for (int i = 2; i < row; i++)
             {
-                ids.Add(csvData[0, i]);
+                ids.Add(csvData[i, 0]);
             }
 
-            return (csvData, row, col, (row != ids.Count));
+            return (csvData, row, col, ((row - 2) != ids.Count));
         }
 
         private void Create()
@@ -205,7 +205,7 @@ namespace UnityEditor
                             field.SetValue(obj, list);
                         }
 
-                        //==  값이 내부 타입으로 변환 가능할 경우에 추가
+                        //== 값이 내부 타입으로 변환 가능할 경우에 추가
                         System.Type listElementType = fieldType.GetGenericArguments()[0];
                         if(listElementType.IsEnum)
                         {
