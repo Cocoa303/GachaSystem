@@ -9,15 +9,19 @@ namespace Manager
 {
     public class Data : Util.Inherited.Singleton<Data>
     {
-        private Dictionary<int, Item> items;         //== 모든 아이템의 정보
+        private Dictionary<int, Item> items;                    //== 모든 아이템의 정보
         private Dictionary<ItemType, HashSet<int>> acquired;    //== 각 분류별 아이템의 소유 여부
         private Dictionary<ItemType, HashSet<int>> isLevelUp;   //== 각 분류별 아이템의 레벨업 여부
 
         private Dictionary<int, global::Data.GachaRandomBag> gachaRandomBags;
+        private Dictionary<string, global::Data.GlobalValue> globalValue;
 
         private const string itemPrefsKey = "Item Data Prefs Key";
         private const char itemUnit = '|';
         private const char dataUnit = ',';
+
+        private Control.Goods goods = new Control.Goods();
+        public Control.Goods Goods { get => goods; private set => goods = value; }
 
         public void Start()
         {
@@ -54,6 +58,7 @@ namespace Manager
             string pathFront = "Data/";
             string itemDataPath = pathFront + "ItemList";
             string gachaDataPath = pathFront + "GachaRandomBag";
+            string globalDataPath = pathFront + "GlobalValue";
 
             var findItemData = Resources.LoadAll<global::Data.ItemList>(itemDataPath);
             for (int i = 0; i < findItemData.Length; i++)
@@ -84,9 +89,22 @@ namespace Manager
                     if (itemTypeDic.ContainsKey(findGachaData[i].gachaRewardID[j])) continue;
                     itemTypeDic.Add(findGachaData[i].gachaRewardID[j], findGachaData[i].gachaRewardItemType[j]);
                 }
-
-                
             }
+
+            #region 전역으로 사용될 데이터
+            globalValue = new Dictionary<string, global::Data.GlobalValue>();
+            var findGlobalValue = Resources.LoadAll<global::Data.GlobalValue>(globalDataPath);
+            for (int i = 0; i < findGlobalValue.Length; i++)
+            {
+                if (globalValue.ContainsKey(findGlobalValue[i].globalValueID))
+                {
+                    Debug.LogError($"[ {findGlobalValue[i].globalValueID} ] ID 값을 가진 아이템 데이터가 이미 존재합니다.\n" +
+                        $"GlobalValue CSV를 확인해주세요.");
+                    continue;
+                }
+                globalValue.Add(findGlobalValue[i].globalValueID, findGlobalValue[i]);
+            }
+            #endregion
 
             #region 저장된 데이터 호출
             string saveItemData = PlayerPrefs.GetString(itemPrefsKey, string.Empty);
@@ -95,9 +113,9 @@ namespace Manager
             {
                 string[] packets = saveItemData.Split(itemUnit);
 
-                if(packets.Length > 1)
+                if (packets.Length > 1)
                 {
-                    for(int i = 0; i < packets.Length; i++)
+                    for (int i = 0; i < packets.Length; i++)
                     {
                         //== 0 : id
                         //== 1 : has count
@@ -112,7 +130,7 @@ namespace Manager
                         {
                             saveItemDic.Add(id, (hasCount, level));
                         }
-                        if(itemTypeDic.ContainsKey(id))
+                        if (itemTypeDic.ContainsKey(id))
                         {
                             acquired[itemTypeDic[id]].Add(id);
                         }
@@ -126,9 +144,6 @@ namespace Manager
             {
                 if (!items.ContainsKey(id))
                 {
-                    Debug.Log(itemDic[id]);
-                    Debug.Log(itemTypeDic[id]);
-
                     items.Add(id, new Item(
                         itemDic[id],
                         (saveItemDic.ContainsKey(id)) ? saveItemDic[id].hasCount : 0,
@@ -139,7 +154,6 @@ namespace Manager
             }
             #endregion
             #endregion
-
         }
 
         private void Save()
@@ -165,7 +179,7 @@ namespace Manager
                 }
             }
 
-            if(builder.Length > 0)
+            if (builder.Length > 0)
             {
                 //== 마지막 itemUnit 삭제
                 builder = builder.Remove(builder.Length - 1, 1);
@@ -173,5 +187,24 @@ namespace Manager
 
             PlayerPrefs.SetString(itemPrefsKey, builder.ToString());
         }
+
+        #region Stat
+
+
+        #endregion
+
+        public global::Data.GlobalValue GlobalValue(string id)
+        {
+            if (globalValue.ContainsKey(id))
+            {
+                return globalValue[id];
+            }
+            else
+            {
+                Debug.LogError($"Can't find {id} in global value database\n");
+                return null;
+            }
+        }
+    
     }
 }
