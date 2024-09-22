@@ -4,15 +4,14 @@ using UnityEngine.UI;
 namespace Common.UI
 {
     [System.Serializable]
-    public class Tap<TID,TTarget>
+    public class Tap<T>
     {
-        public TID id;
-        public TTarget target;
+        public T id;
         public Image background;
         public Text title;
         public Button trigger;
 
-        public delegate void InteractionEvent(TID id);
+        public delegate void InteractionEvent(T id);
         public InteractionEvent onSelect;
         public InteractionEvent disSelect;
 

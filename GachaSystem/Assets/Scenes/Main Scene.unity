@@ -1497,8 +1497,6 @@ MonoBehaviour:
   saveMoney: {fileID: 1386554354}
   saveMoneyGetTrigger: {fileID: 286051727}
   notice: {fileID: 146943004}
-  duration: 0
-  currentTime: 0
 --- !u!1 &847952224
 GameObject:
   m_ObjectHideFlags: 0
@@ -3271,15 +3269,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce43b903e578c7a4e9433e9ae8c25440, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  goodsUI: {fileID: 8896699}
+  gachaUI: {fileID: 1533149997}
   controlTap:
     uis:
     - id: Goods UI
-      target: {fileID: 8896699}
       background: {fileID: 1525730485}
       title: {fileID: 1749360937}
       trigger: {fileID: 1525730487}
     - id: Gacha UI
-      target: {fileID: 1533149997}
       background: {fileID: 349172468}
       title: {fileID: 951852574}
       trigger: {fileID: 349172470}

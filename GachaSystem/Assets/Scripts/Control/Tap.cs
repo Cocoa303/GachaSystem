@@ -6,10 +6,14 @@ namespace Control.UI
     [System.Serializable]
     public class Tap<T> : IUIInitialize
     {
-        [SerializeField] List<Common.UI.Tap<T, GameObject>> uis;
+        [SerializeField] List<Common.UI.Tap<T>> uis;
         [SerializeField] T firstOpen;
 
-        private Common.UI.Tap<T, GameObject> openTap;
+        private Dictionary<T, System.Action<T>> selectCallbacks = new Dictionary<T, System.Action<T>>();
+        private Dictionary<T, System.Action<T>> unselectCallbacks = new Dictionary<T, System.Action<T>>();
+
+
+        private Common.UI.Tap<T> openTap;
 
         #region Setting
         [Space]
@@ -48,7 +52,7 @@ namespace Control.UI
 
         #endregion
 
-        public Common.UI.Tap<T, GameObject> CurrentOpenTap { get => openTap; private set=> openTap = value; }
+        public Common.UI.Tap<T> CurrentOpenTap { get => openTap; private set=> openTap = value; }
 
         public void Initialize()
         {
@@ -65,6 +69,28 @@ namespace Control.UI
             if (Comparer<T>.Default.Compare(firstOpen, default) != 0)
             {
                 OnSelect(firstOpen);
+            }
+        }
+        public void InsertSelectCallback(T id, System.Action<T> callback)
+        {
+            if(selectCallbacks.ContainsKey(id))
+            {
+                selectCallbacks[id] += callback;
+            }
+            else
+            {
+                selectCallbacks.Add(id, callback);
+            }
+        }
+        public void InsertUnselectCallback(T id, System.Action<T> callback)
+        {
+            if (unselectCallbacks.ContainsKey(id))
+            {
+                unselectCallbacks[id] += callback;
+            }
+            else
+            {
+                unselectCallbacks.Add(id, callback);
             }
         }
 
@@ -101,7 +127,7 @@ namespace Control.UI
             }
         }
 
-        private void SetSelectedTap(Common.UI.Tap<T, GameObject> tap)
+        private void SetSelectedTap(Common.UI.Tap<T> tap)
         {
             if (backgroundChange)
             {
@@ -134,9 +160,12 @@ namespace Control.UI
                 }
             }
 
-            tap.target.SetActive(true);
+            if(selectCallbacks.ContainsKey(tap.id))
+            {
+                selectCallbacks[tap.id]?.Invoke(tap.id);
+            }
         }
-        private void SetUnselectedTap(Common.UI.Tap<T, GameObject> tap)
+        private void SetUnselectedTap(Common.UI.Tap<T> tap)
         {
             if (backgroundChange)
             {
@@ -169,7 +198,10 @@ namespace Control.UI
                 }
             }
 
-            tap.target.SetActive(false);
+            if (unselectCallbacks.ContainsKey(tap.id))
+            {
+                unselectCallbacks[tap.id]?.Invoke(tap.id);
+            }
         }
     }
 }
