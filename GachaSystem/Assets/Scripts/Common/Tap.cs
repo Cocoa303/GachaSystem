@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace Common.UI
 {
     [System.Serializable]
-    public class Tap<TID,TTarget> where TID : System.IComparable<TID>
+    public class Tap<TID,TTarget>
     {
         public TID id;
         public TTarget target;

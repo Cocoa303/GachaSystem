@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Control.UI
 {
     [System.Serializable]
-    public class Tap<T> : IUIInitialize where T : System.IComparable<T>
+    public class Tap<T> : IUIInitialize
     {
         [SerializeField] List<Common.UI.Tap<T, GameObject>> uis;
         [SerializeField] T firstOpen;
@@ -62,7 +62,7 @@ namespace Control.UI
                 }
             }
 
-            if (firstOpen.CompareTo(default) != 0)
+            if (Comparer<T>.Default.Compare(firstOpen, default) != 0)
             {
                 OnSelect(firstOpen);
             }
@@ -72,7 +72,7 @@ namespace Control.UI
         {
             if (openTap == null)
             {
-                int findIndex = uis.FindIndex((ui) => ui.id.CompareTo(id) == 0);
+                int findIndex = uis.FindIndex((ui) => Comparer<T>.Default.Compare(ui.id, id) == 0);
                 if (findIndex != -1)
                 {
                     SetSelectedTap(uis[findIndex]);
@@ -81,7 +81,7 @@ namespace Control.UI
             }
             else
             {
-                int findIndex = uis.FindIndex((ui) => ui.id.CompareTo(id) == 0);
+                int findIndex = uis.FindIndex((ui) => Comparer<T>.Default.Compare(ui.id, id) == 0);
                 if (findIndex != -1)
                 {
                     SetUnselectedTap(openTap);
@@ -93,7 +93,7 @@ namespace Control.UI
         }
         private void DisSelect(T id)
         {
-            int findIndex = uis.FindIndex((ui) => ui.id.CompareTo(id) == 0);
+            int findIndex = uis.FindIndex((ui) => Comparer<T>.Default.Compare(ui.id,id) == 0);
             if (findIndex != -1)
             {
                 SetUnselectedTap(uis[findIndex]);
