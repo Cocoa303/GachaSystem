@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-
+using UnityEngine.Pool;
 using ItemType = global::Data.GachaRandomBag.GachaRewardItemType;
 
 namespace Manager
@@ -187,12 +187,9 @@ namespace Manager
 
             PlayerPrefs.SetString(itemPrefsKey, builder.ToString());
         }
-
         #region Stat
 
-
         #endregion
-
         public global::Data.GlobalValue GlobalValue(string id)
         {
             if (globalValue.ContainsKey(id))
@@ -205,6 +202,28 @@ namespace Manager
                 return null;
             }
         }
-    
+
+        /// <summary>
+        /// 획득한적이 있는 아이템을 반환하는 함수
+        /// </summary>
+        /// <param name="type"> 탐색할 아이템 타입 </param>
+        /// <returns>Pool 객체임으로, 사용 이후 Release 처리해 주시는 게 좋습니다.</returns>
+        public List<Item> GetAcquiredItems(ItemType type)
+        {
+            List<Item> list = ListPool<Item>.Get();
+
+            foreach(var item in items.Values)
+            {
+                if(item.Type == type)
+                {
+                    if (acquired[item.Type].Contains(item.Data.itemID))
+                    {
+                        list.Add(item);
+                    }
+                }
+            }
+
+            return list;
+        }
     }
 }

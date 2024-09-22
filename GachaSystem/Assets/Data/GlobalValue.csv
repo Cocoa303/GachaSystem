@@ -6,3 +6,4 @@ n_DefaultMoneyCount,500
 n_RequireGachaPrice,100
 n_MaxMoneyLimit,100000
 n_MinMoneyToGet,100
+n_ItemLevelUpNeedCount,2

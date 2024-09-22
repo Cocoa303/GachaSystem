@@ -34,7 +34,7 @@ namespace Manager
                 atlasDB.Add(item.name, item);
             }
         }
-        private Sprite GetSprite(string atlas, string name)
+        public Sprite GetSprite(string atlas, string name)
         {
             if(atlasDB.ContainsKey(atlas))
             {
