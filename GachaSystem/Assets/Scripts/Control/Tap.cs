@@ -66,7 +66,7 @@ namespace Control.UI
                 }
             }
 
-            if (Comparer<T>.Default.Compare(firstOpen, default) != 0)
+            if (Comparer<T>.Default.Compare(firstOpen, default) != 0 || typeof(T).IsEnum)
             {
                 OnSelect(firstOpen);
             }
