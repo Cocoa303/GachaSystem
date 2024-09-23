@@ -1,12 +1,14 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace UI
 {
     public class Menu : Base
     {
+        [SerializeField] Text title; 
         [SerializeField] GameObject goodsUI;
         [SerializeField] GameObject gachaUI;
 
@@ -18,10 +20,12 @@ namespace UI
             controlTap.InsertSelectCallback("Goods UI", (_) =>
             {
                 goodsUI.SetActive(true);
+                title.text = "자원";
             });
             controlTap.InsertSelectCallback("Gacha UI", (_) =>
             {
                 gachaUI.SetActive(true);
+                title.text = "뽑기";
             });
             #endregion
 
