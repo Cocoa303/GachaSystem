@@ -7,7 +7,7 @@ namespace Manager
 {
     public class Resource : Util.Inherited.Singleton<Resource>
     {
-        private Dictionary<string, SpriteAtlas> atlasDB;
+        [SerializeField] Util.Inspector.UniDictionary<string, SpriteAtlas> atlasDB;
 
 
         private readonly string atlasPath = "Atlas/";
@@ -21,7 +21,7 @@ namespace Manager
         {
             var loadAtlas = Resources.LoadAll<SpriteAtlas>(atlasPath);
 
-            atlasDB = new Dictionary<string, SpriteAtlas>(loadAtlas.Length);
+            atlasDB = new Util.Inspector.UniDictionary<string, SpriteAtlas>(loadAtlas.Length);
 
             foreach (var item in loadAtlas)
             {
@@ -36,7 +36,7 @@ namespace Manager
         }
         public Sprite GetSprite(string atlas, string name)
         {
-            if(atlasDB.ContainsKey(atlas))
+            if (atlasDB.ContainsKey(atlas))
             {
                 return atlasDB[atlas].GetSprite(name);
             }
