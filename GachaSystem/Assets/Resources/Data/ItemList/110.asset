@@ -16,4 +16,5 @@ MonoBehaviour:
   itemGrade: 2
   itemOptionType: 0
   defaultValue: 200
-  iconPath: "Item/Weapon/w10\r"
+  atlasName: Weapon
+  iconName: w10

@@ -16,4 +16,5 @@ MonoBehaviour:
   itemGrade: 0
   itemOptionType: 2
   defaultValue: 2
-  iconPath: "Item/Shield/s2\r"
+  atlasName: Shield
+  iconName: s2

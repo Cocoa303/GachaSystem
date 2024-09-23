@@ -16,4 +16,5 @@ MonoBehaviour:
   itemGrade: 0
   itemOptionType: 2
   defaultValue: 3
-  iconPath: "Item/Shield/s3\r"
+  atlasName: Shield
+  iconName: s3

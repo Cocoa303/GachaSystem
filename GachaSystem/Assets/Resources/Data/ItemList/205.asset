@@ -16,4 +16,5 @@ MonoBehaviour:
   itemGrade: 0
   itemOptionType: 1
   defaultValue: 5
-  iconPath: "Item/Armor/a5\r"
+  atlasName: Armor
+  iconName: a5
