@@ -37,6 +37,16 @@ namespace Util
                 return string.Empty;
             }
         }
+
+        public static Color ArgbToColor(uint argb)
+        {
+            float a = ((argb >> 24) & 0xFF) / 255f;
+            float r = ((argb >> 16) & 0xFF) / 255f;
+            float g = ((argb >> 8) & 0xFF) / 255f;
+            float b = (argb & 0xFF) / 255f;
+
+            return new Color(r, g, b, a);
+        }
     }
 
 }
