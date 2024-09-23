@@ -90,7 +90,7 @@ namespace UnityEditor
 
                 for (int j = 0; j < col; j++)
                 {
-                    csvData[i, j] = rowDatas[j];
+                    csvData[i, j] = rowDatas[j].Replace("\r","");
                 }
             }
 
@@ -106,9 +106,14 @@ namespace UnityEditor
         private void Create()
         {
             StringBuilder csFile = new StringBuilder(string.Empty);
+            var csv = CSVLoad();
+
 
             csFile.AppendLine("using UnityEngine;");
-            csFile.AppendLine("using System.Collections.Generic;\n");
+            if (csv.isList)
+            {
+                csFile.AppendLine("using System.Collections.Generic;\n");
+            }
             csFile.AppendLine("namespace Data");
             csFile.AppendLine("{");
             csFile.AppendLine($"\t[CreateAssetMenu(fileName = \"Data\", menuName = \"Data/{csvFile.name}\")]");
@@ -144,7 +149,7 @@ namespace UnityEditor
             }
             System.IO.Directory.CreateDirectory(scriptablePath);
 
-            var csv = CSVLoad();
+
             
             var variables = ListPool<string>.Get();
             for (int col = 0; col < csv.col; col++)
