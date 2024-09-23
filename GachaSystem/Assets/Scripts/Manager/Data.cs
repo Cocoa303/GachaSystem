@@ -14,6 +14,7 @@ namespace Manager
         private Dictionary<ItemType, HashSet<int>> isLevelUp;   //== 각 분류별 아이템의 레벨업 여부
 
         private Dictionary<int, global::Data.GachaRandomBag> gachaRandomBags;
+        private Dictionary<ItemType, global::Data.GachaGradeInfo> gachaGradeInfos;
         private Dictionary<string, global::Data.GlobalValue> globalValue;
 
         private const string itemPrefsKey = "Item Data Prefs Key";
@@ -54,11 +55,17 @@ namespace Manager
             var itemTypeDic = new Dictionary<int, ItemType>();
             items = new Dictionary<int, Item>();
             gachaRandomBags = new Dictionary<int, global::Data.GachaRandomBag>();
+            gachaGradeInfos = new Dictionary<ItemType, global::Data.GachaGradeInfo>();
 
             string pathFront = "Data/";
+
+            //== PathFront + Class Name
+            //== typeof를 사용하지 않는 이유 : namespace가 포함되어 나와 Data.ClassName으로 반환되기 때문
+            //== namespace는 데이터 파일명과 클래스가 곂치는 경우가 개발 도중 종종 발생하기 때문에 namespace 사용
             string itemDataPath = pathFront + "ItemList";
             string gachaDataPath = pathFront + "GachaRandomBag";
             string globalDataPath = pathFront + "GlobalValue";
+            string gachaGradeDataPath = pathFront + "GachaGradeInfo";
 
             var findItemData = Resources.LoadAll<global::Data.ItemList>(itemDataPath);
             for (int i = 0; i < findItemData.Length; i++)
@@ -90,6 +97,31 @@ namespace Manager
                     itemTypeDic.Add(findGachaData[i].gachaRewardID[j], findGachaData[i].gachaRewardItemType[j]);
                 }
             }
+
+            var findGachaGradInfos = Resources.LoadAll<global::Data.GachaGradeInfo>(gachaGradeDataPath);
+            for (int i = 0; i < findGachaGradInfos.Length; i++)
+            {
+                int bagID = findGachaGradInfos[i].gachaRandombagID;
+                if (!gachaRandomBags.ContainsKey(bagID))
+                {
+                    Debug.LogError($"[ {bagID} ] Bag 값을 가진 아이템 데이터가 이미 존재합니다.\n" +
+                        $"현재 [ 24.09.23 ] GachaGradeInfo와 GachaRandomBag는 1:1로 연동되어있습니다." +
+                        $"GachaGradeInfo CSV를 확인해주세요.");
+                }
+
+                //== [ 24.09.23 ] 현재 GachaRandomBag은 동일한 종류의 아이템을 생성하고 있기 때문에 해당 방식을 채택합니다.
+                //== 종합 아이템 뽑기등의 기능이 추가된다면 GachaRewardItemType을 추가하고, 0번 인덱스에 우선적으로 설정해주시기 바랍니다.
+                ItemType keyType = gachaRandomBags[bagID].gachaRewardItemType[0];
+
+                if (gachaGradeInfos.ContainsKey(keyType))
+                {
+                    Debug.LogError($"[ {keyType} ] 을 생성하는 데이터가 이미 존재합니다.\n" +
+                        $"GachaGradeInfo, GachaRandomBag CSV를 확인해주세요.");
+                    continue;
+                }
+                gachaGradeInfos.Add(keyType, findGachaGradInfos[i]);
+            }
+
 
             #region 전역으로 사용될 데이터
             globalValue = new Dictionary<string, global::Data.GlobalValue>();
@@ -199,6 +231,18 @@ namespace Manager
             else
             {
                 Debug.LogError($"Can't find {id} in global value database\n");
+                return null;
+            }
+        }
+
+        public global::Data.GachaGradeInfo GetGachaGradeInfo(ItemType type)
+        {
+            if(gachaGradeInfos.ContainsKey(type))
+            {
+                return gachaGradeInfos[type]; 
+            }
+            else
+            {
                 return null;
             }
         }
