@@ -35,7 +35,6 @@ namespace UI
 
         Coroutine productionRoutine;
 
-        private int levelUpNeedCount = 0;
         private int requireGachaPrice = 0;
 
         public override void Initialize()
@@ -47,7 +46,6 @@ namespace UI
             #endregion
 
             requireGachaPrice = (int)Manager.Data.Instance.GlobalValue("n_RequireGachaPrice").value;
-            levelUpNeedCount = (int)Manager.Data.Instance.GlobalValue("n_ItemLevelUpNeedCount").value;
 
             for (int i = 0; i < triggers.Count; i++)
             {
@@ -98,6 +96,8 @@ namespace UI
 
             for (int i = 0; i < itemSlots.Count; i++)
             {
+                int levelUpNeedCount = Manager.Data.Instance.GetItemUpgradeNeedCount(items[i]);
+
                 itemSlots[i].Init(
                     Manager.Resource.Instance.GetSprite(items[i].Data.atlasName, items[i].Data.iconName),
                     Manager.Resource.Instance.GetSprite("UI", $"ItemSlot_{items[i].Data.itemGrade.ToString()}"),
