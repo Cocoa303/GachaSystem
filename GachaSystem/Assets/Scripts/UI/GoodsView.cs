@@ -13,8 +13,8 @@ namespace UI
 
         public override void Initialize()
         {
-            Manager.Data.Instance.Goods.InsertCallback(key, UpdateView);
-            UpdateView(Manager.Data.Instance.Goods.Get(key));
+            Manager.Data.Instance.Values.InsertCallback(key, UpdateView);
+            UpdateView(Manager.Data.Instance.Values.Get(key));
         }
 
         private void UpdateView(long value)

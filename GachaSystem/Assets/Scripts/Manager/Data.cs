@@ -24,8 +24,8 @@ namespace Manager
         private const char itemUnit = '|';
         private const char dataUnit = ',';
 
-        private Control.Goods goods = new Control.Goods();
-        public Control.Goods Goods { get => goods; private set => goods = value; }
+        private Control.Value value = new Control.Value();
+        public Control.Value Values { get => value; private set => this.value = value; }
 
         public void Start()
         {

@@ -16,7 +16,7 @@ namespace UI
 
         protected override void Start()
         {
-            Manager.Data.Instance.Goods.InsertCallback("Save Money", OnSaveMoneyCallback);
+            Manager.Data.Instance.Values.InsertCallback("Save Money", OnSaveMoneyCallback);
 
             Manager.Game.Instance.onChangeRefillMoneyInterval += (remain) =>
             {
@@ -34,7 +34,7 @@ namespace UI
             };
 
             //== 초기 세팅을 위함.
-            OnSaveMoneyCallback(Manager.Data.Instance.Goods.Get("Save Money"));
+            OnSaveMoneyCallback(Manager.Data.Instance.Values.Get("Save Money"));
         }
 
         private void OnSaveMoneyCallback(long saveMoney)

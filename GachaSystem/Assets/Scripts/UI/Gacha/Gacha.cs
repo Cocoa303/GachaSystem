@@ -54,8 +54,8 @@ namespace UI
                 triggers[i].Set($"x {count}회\n{(count * requireGachaPrice):N0}", PressGachaTrigger);
             }
 
-            Manager.Data.Instance.Goods.InsertCallback("Money", UpdateGachaTrigger);
-            UpdateGachaTrigger(Manager.Data.Instance.Goods.Get("Money"));
+            Manager.Data.Instance.Values.InsertCallback("Money", UpdateGachaTrigger);
+            UpdateGachaTrigger(Manager.Data.Instance.Values.Get("Money"));
 
             itemSlots = new List<ItemSlot>();
             rewardSlots = new List<GachaReward>();
@@ -158,7 +158,7 @@ namespace UI
             }
 
             //== 재화 감소
-            Manager.Data.Instance.Goods.Use("Money", count * requireGachaPrice);
+            Manager.Data.Instance.Values.Use("Money", count * requireGachaPrice);
 
             rewardPanel.SetActive(true);
 
