@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UnityEngine.Pool;
-using ItemType = global::Data.GachaRandomBag.GachaRewardItemType;
+
+using ItemType = Data.GachaRandomBag.GachaRewardItemType;
+using ItemGrade = Data.GachaRandomBag.GachaRewardGrade;
 
 namespace Manager
 {
@@ -32,7 +34,6 @@ namespace Manager
         {
             Save();
         }
-
         private void Init()
         {
             #region 데이터 기본 초기화
@@ -237,14 +238,76 @@ namespace Manager
 
         public global::Data.GachaGradeInfo GetGachaGradeInfo(ItemType type)
         {
-            if(gachaGradeInfos.ContainsKey(type))
+            if (gachaGradeInfos.ContainsKey(type))
             {
-                return gachaGradeInfos[type]; 
+                return gachaGradeInfos[type];
             }
             else
             {
                 return null;
             }
+        }
+
+        public global::Data.GachaRandomBag GetGachaRandomBag(int id)
+        {
+            if (gachaRandomBags.ContainsKey(id))
+            {
+                return gachaRandomBags[id];
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public Dictionary<int /* ID */, int /* Count */> CreateGachaItems(int count, ItemType type)
+        {
+            //== 아이템 개수만큼 랜덤백 뽑아오기
+            var info = GetGachaGradeInfo(type);
+            var gachaID = info.gachaRandombagID;
+
+            var itemPool = DictionaryPool<ItemGrade, List<int>>.Get();
+            var grades = System.Enum.GetValues(typeof(ItemGrade));
+
+            foreach (var grade in grades)
+            {
+                itemPool.Add((ItemGrade)grade, ListPool<int>.Get());
+            }
+
+            #region Data Making
+            var gacha = GetGachaRandomBag(gachaID);
+            for (int i = 0; i < gacha.gachaRewardGrade.Count; i++)
+            {
+                itemPool[gacha.gachaRewardGrade[i]].Add(gacha.gachaRewardID[i]);
+            }
+            #endregion
+
+            //== 뽑기 결과 생성
+            Dictionary<int, int> result = new Dictionary<int, int>();
+            for (int i = 0; i < count; i++)
+            {
+                ItemGrade grade = GetRandomGachaGrade(info);
+
+                List<int> items = itemPool[grade];
+                int select = Random.Range(0, items.Count);
+
+                if (result.ContainsKey(items[select]))
+                {
+                    result[items[select]]++;
+                }
+                else
+                {
+                    result.Add(items[select], 1);
+                }
+            }
+
+            foreach (var key in itemPool.Keys)
+            {
+                ListPool<int>.Release(itemPool[key]);
+            }
+            DictionaryPool<ItemGrade, List<int>>.Release(itemPool);
+
+            return result;
         }
 
         /// <summary>
@@ -256,9 +319,9 @@ namespace Manager
         {
             List<Item> list = ListPool<Item>.Get();
 
-            foreach(var item in items.Values)
+            foreach (var item in items.Values)
             {
-                if(item.Type == type)
+                if (item.Type == type)
                 {
                     if (acquired[item.Type].Contains(item.Data.itemID))
                     {
@@ -268,6 +331,91 @@ namespace Manager
             }
 
             return list;
+        }
+        public bool IsAcquired(ItemType type, int id)
+        {
+            if(acquired.ContainsKey(type))
+            {
+                if (acquired[type].Contains(id))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+
+            return false;
+        }
+        public Item GetItem(int id)
+        {
+            if (items.ContainsKey(id))
+            {
+                return items[id];
+            }
+            else
+            {
+                return null;
+            }
+        }
+        public void InsertItem(int id, int count)
+        {
+            if(items.ContainsKey(id))
+            {
+                items[id].HasCount += count;
+                acquired[items[id].Type].Add(id);
+                CheckItemLevelUp(items[id]);
+            }
+            else
+            {
+#if UNITY_EDITOR
+                Debug.LogError($"ID {id}값을 가지고있는 아이템이 존재하지 않습니다.\n" +
+                    $"뽑기 테이블과 아이템 테이블이 일치 하지 않습니다.");
+#endif
+            }
+        }
+
+        private void CheckItemLevelUp(Item item)
+        {
+            int itemLevelUpNeedCount = (int)GlobalValue("n_ItemLevelUpNeedCount").value;
+
+            if (itemLevelUpNeedCount <= item.HasCount)
+            {
+                int levelUpCount = item.HasCount / itemLevelUpNeedCount;
+                item.Level += levelUpCount;
+                item.HasCount -= (levelUpCount * itemLevelUpNeedCount);
+            }
+        }
+
+        private ItemGrade GetRandomGachaGrade(global::Data.GachaGradeInfo info)
+        {
+            int[] percent =
+            {
+                info.normalGachaRate,
+                info.rareGachaRate,
+                info.epicGachaRate
+            };
+
+            ItemGrade[] grade =
+            {
+                ItemGrade.Normal,
+                ItemGrade.Rare,
+                ItemGrade.Epic
+            };
+
+            int range = info.normalGachaRate + info.rareGachaRate + info.epicGachaRate;
+            int random = Random.Range(0, range);
+            for (int i = 0; i < percent.Length; i++)
+            {
+                random -= percent[i];
+                if(random < 0)
+                {
+                    return grade[i];
+                }
+            }
+
+            return ItemGrade.Normal;
         }
     }
 }
