@@ -97,6 +97,22 @@ namespace Control
             return record[key];
         }
 
+        public void Change(string key, long value)
+        {
+            if (record == null) Init();
+
+            if (!record.ContainsKey(key))
+            {
+                record.Add(key, value);
+                Callback(key, value);
+            }
+            else
+            {
+                record[key] = value;
+                Callback(key, record[key]);
+            }
+        }
+
         public bool Exists(string key)
         {
             if (record == null) Init();
