@@ -18,6 +18,7 @@ namespace Manager
         private Dictionary<int, global::Data.GachaRandomBag> gachaRandomBags;
         private Dictionary<ItemType, global::Data.GachaGradeInfo> gachaGradeInfos;
         private Dictionary<string, global::Data.GlobalValue> globalValue;
+        private List<global::Data.ItemOptionUpgrade> itemOptionUpgrades;
 
         private const string itemPrefsKey = "Item Data Prefs Key";
         private const char itemUnit = '|';
@@ -57,6 +58,7 @@ namespace Manager
             items = new Dictionary<int, Item>();
             gachaRandomBags = new Dictionary<int, global::Data.GachaRandomBag>();
             gachaGradeInfos = new Dictionary<ItemType, global::Data.GachaGradeInfo>();
+            itemOptionUpgrades = new List<global::Data.ItemOptionUpgrade>();
 
             string pathFront = "Data/";
 
@@ -67,6 +69,7 @@ namespace Manager
             string gachaDataPath = pathFront + "GachaRandomBag";
             string globalDataPath = pathFront + "GlobalValue";
             string gachaGradeDataPath = pathFront + "GachaGradeInfo";
+            string itemOptionUpgradePath = pathFront + "ItemOptionUpgrade";
 
             var findItemData = Resources.LoadAll<global::Data.ItemList>(itemDataPath);
             for (int i = 0; i < findItemData.Length; i++)
@@ -123,6 +126,15 @@ namespace Manager
                 gachaGradeInfos.Add(keyType, findGachaGradInfos[i]);
             }
 
+            var itemUpgradeOption = Resources.LoadAll<global::Data.ItemOptionUpgrade>(itemOptionUpgradePath);
+            itemOptionUpgrades.AddRange(itemUpgradeOption);
+            //== 낮은 순서대로 정렬
+            itemOptionUpgrades.Sort((lvalue, rvalue) =>
+            {
+                if (lvalue.upgradeBelowLimit < rvalue.upgradeBelowLimit) return -1;
+                else if (lvalue.upgradeBelowLimit > rvalue.upgradeBelowLimit) return 1;
+                else return 0;
+            });
 
             #region 전역으로 사용될 데이터
             globalValue = new Dictionary<string, global::Data.GlobalValue>();
@@ -188,7 +200,6 @@ namespace Manager
             #endregion
             #endregion
         }
-
         private void Save()
         {
             StringBuilder builder = new StringBuilder();
@@ -376,17 +387,87 @@ namespace Manager
             }
         }
 
+        #region Upgrade Reference
         private void CheckItemLevelUp(Item item)
         {
-            int itemLevelUpNeedCount = (int)GlobalValue("n_ItemLevelUpNeedCount").value;
+            int needCost = GetItemUpgradeNeedCount(item);
 
-            if (itemLevelUpNeedCount <= item.HasCount)
+            if (needCost <= item.HasCount)
             {
-                int levelUpCount = item.HasCount / itemLevelUpNeedCount;
-                item.Level += levelUpCount;
-                item.HasCount -= (levelUpCount * itemLevelUpNeedCount);
+                item.Level++;
+                item.HasCount -= needCost;
+
+                CheckItemLevelUp(item);
             }
         }
+
+        public int GetItemUpgradeNeedCount(Item item)
+        {
+            for(int i = 0; i < itemOptionUpgrades.Count; i++)
+            {
+                if (item.Level <= itemOptionUpgrades[i].upgradeBelowLimit)
+                {
+                    return itemOptionUpgrades[i].upgradeCost;
+                }
+            }
+
+            return (int)GlobalValue("n_DefaultUpgradeCost").value;
+        }
+
+        //== [ 24.09.24 ] Increase형태만 존재하기에 정수형 계산만 진행합니다.
+        public int GetItemStat(Item item)
+        {
+            int stat = 0;
+            for(int i = 0; i < itemOptionUpgrades.Count; i++)
+            {
+                int upgradeCount = itemOptionUpgrades[i].upgradeBelowLimit;
+                int level = item.Level;
+
+                //== 이전에 계산했던 회수만큼 제외.
+                if (i != 0 /* Not first */)
+                {
+                    for (int reverse = i - 1 /* Prev */; 0 <= reverse; reverse--)
+                    {
+                        upgradeCount -= itemOptionUpgrades[reverse].upgradeBelowLimit;
+                        level -= itemOptionUpgrades[reverse].upgradeBelowLimit;
+                    }
+                }
+
+                if (upgradeCount <= level)
+                {
+                    switch (item.Data.itemGrade)
+                    {
+                        case global::Data.ItemList.ItemGrade.Normal:
+                            stat += upgradeCount * itemOptionUpgrades[i].normalUpgradeValue;
+                            break;
+                        case global::Data.ItemList.ItemGrade.Rare:
+                            stat += upgradeCount * itemOptionUpgrades[i].rareUpgradeValue;
+                            break;
+                        case global::Data.ItemList.ItemGrade.Epic:
+                            stat += upgradeCount * itemOptionUpgrades[i].epicUpgradeValue;
+                            break;
+                    }
+                }
+                else
+                {
+                    switch (item.Data.itemGrade)
+                    {
+                        case global::Data.ItemList.ItemGrade.Normal:
+                            stat += level * itemOptionUpgrades[i].normalUpgradeValue;
+                            break;
+                        case global::Data.ItemList.ItemGrade.Rare:
+                            stat += level * itemOptionUpgrades[i].rareUpgradeValue;
+                            break;
+                        case global::Data.ItemList.ItemGrade.Epic:
+                            stat += level * itemOptionUpgrades[i].epicUpgradeValue;
+                            break;
+                    }
+                }
+            }
+
+            return stat;
+        }
+        #endregion
 
         private ItemGrade GetRandomGachaGrade(global::Data.GachaGradeInfo info)
         {
