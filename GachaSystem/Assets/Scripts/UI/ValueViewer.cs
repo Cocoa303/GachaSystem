@@ -5,11 +5,14 @@ using UnityEngine.UI;
 
 namespace UI
 {
-    public class GoodsView : Base
+    public class ValueViewer : Base
     {
         [SerializeField] Text view;
         [SerializeField] string key;
-        [SerializeField] string format;
+
+        //== Setting
+        [SerializeField] bool isBold;
+        [SerializeField] bool isItalic;
 
         public override void Initialize()
         {
@@ -19,7 +22,12 @@ namespace UI
 
         private void UpdateView(long value)
         {
-            view.text = string.Format(format, value);
+            view.text =
+                ((isBold) ? "<b>" : "") +
+                ((isItalic) ? "<i>" : "") +
+                Util.Convert.NumberToUnitString(value) +
+                ((isItalic) ? "</i>" : "") +
+                ((isBold) ? "</b>" : "");
         }
     }
 }
