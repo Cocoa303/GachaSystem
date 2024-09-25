@@ -28,6 +28,9 @@ namespace Manager
             Data.Instance.Values.InsertCallback("Save Money", OnSaveMoneyCallback);
 
             OnSaveMoneyCallback(Data.Instance.Values.Get("Save Money"));
+
+            //== In Game Setting
+            Sound.Instance.PlaySound("BGM", -1, true);
         }
 
         private void OnSaveMoneyCallback(long saveMoney)
