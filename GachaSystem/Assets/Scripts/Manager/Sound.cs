@@ -116,6 +116,24 @@ namespace Manager
         private const string Volum = "VOLUM";
 
 #if UNITY_EDITOR
+        public List<string> EditorClipNames 
+        {
+            get
+            {
+                List<string> names = new List<string>();
+
+                foreach (var clip in this.clips)
+                {
+                    names.Add(clip.key);
+                }
+
+                return names;
+            }
+        }
+#endif
+
+
+#if UNITY_EDITOR
         private void OnValidate()
         {
             if (bgm == null)
@@ -158,6 +176,7 @@ namespace Manager
 #endif
         private void Start()
         {
+            InitializeState();
             InitializeDatabase();
             LoadSetting();
             InitializeAudio();
