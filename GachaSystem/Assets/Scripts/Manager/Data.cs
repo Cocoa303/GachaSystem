@@ -21,6 +21,8 @@ namespace Manager
         private List<global::Data.ItemOptionUpgrade> itemOptionUpgrades;
 
         private const string itemPrefsKey = "Item Data Prefs Key";
+        private const string moneyPrefsKey = "Money Value Prefs Key";
+        private const string refillMoneyPrefsKey = "Refill Money Value Prefs Key";
         private const char itemUnit = '|';
         private const char dataUnit = ',';
 
@@ -184,6 +186,14 @@ namespace Manager
             }
             #endregion
 
+            #region 머니 재화 획득 및 설정
+            value.Add("Money", long.Parse(PlayerPrefs.GetString(moneyPrefsKey, ((long)GlobalValue("n_DefaultMoneyCount").value).ToString())));
+            value.Add("Save Money", long.Parse(PlayerPrefs.GetString(refillMoneyPrefsKey, "0")));
+
+            value.InsertCallback("Money", RealTimeSaveMoney);
+            value.InsertCallback("Save Money", RealTimeSaveRefillMoney);
+            #endregion
+
             #region Item 데이터 세팅
             foreach (var id in itemDic.Keys)
             {
@@ -199,6 +209,8 @@ namespace Manager
             }
             #endregion
             #endregion
+
+            UpdateHasItemStat();
         }
         private void Save()
         {
@@ -230,6 +242,14 @@ namespace Manager
             }
 
             PlayerPrefs.SetString(itemPrefsKey, builder.ToString());
+        }
+        private void RealTimeSaveMoney(long money)
+        {
+            PlayerPrefs.SetString(moneyPrefsKey, money.ToString());
+        }
+        private void RealTimeSaveRefillMoney(long money)
+        {
+            PlayerPrefs.SetString(refillMoneyPrefsKey, money.ToString());
         }
         #region Stat
 
@@ -415,13 +435,29 @@ namespace Manager
         }
 
         //== [ 24.09.24 ] Increase형태만 존재하기에 정수형 계산만 진행합니다.
+
         public int GetItemStat(Item item)
         {
-            int stat = 0;
-            for(int i = 0; i < itemOptionUpgrades.Count; i++)
+            int stat = item.Data.defaultValue;
+            int level = item.Level;
+
+            System.Func<int, global::Data.ItemOptionUpgrade, int> OperationStat = (count,upgrade) =>
+            {
+                switch (item.Data.itemGrade)
+                {
+                    case global::Data.ItemList.ItemGrade.Normal:
+                        return count * upgrade.normalUpgradeValue;
+                    case global::Data.ItemList.ItemGrade.Rare:
+                        return count * upgrade.rareUpgradeValue;
+                    case global::Data.ItemList.ItemGrade.Epic:
+                        return count * upgrade.epicUpgradeValue;
+                    default: return 0;
+                }
+            };
+
+            for (int i = 0; i < itemOptionUpgrades.Count; i++)
             {
                 int upgradeCount = itemOptionUpgrades[i].upgradeBelowLimit;
-                int level = item.Level;
 
                 //== 이전에 계산했던 회수만큼 제외.
                 if (i != 0 /* Not first */)
@@ -429,45 +465,74 @@ namespace Manager
                     for (int reverse = i - 1 /* Prev */; 0 <= reverse; reverse--)
                     {
                         upgradeCount -= itemOptionUpgrades[reverse].upgradeBelowLimit;
-                        level -= itemOptionUpgrades[reverse].upgradeBelowLimit;
                     }
                 }
+                if (level <= 0) break;
 
                 if (upgradeCount <= level)
                 {
-                    switch (item.Data.itemGrade)
-                    {
-                        case global::Data.ItemList.ItemGrade.Normal:
-                            stat += upgradeCount * itemOptionUpgrades[i].normalUpgradeValue;
-                            break;
-                        case global::Data.ItemList.ItemGrade.Rare:
-                            stat += upgradeCount * itemOptionUpgrades[i].rareUpgradeValue;
-                            break;
-                        case global::Data.ItemList.ItemGrade.Epic:
-                            stat += upgradeCount * itemOptionUpgrades[i].epicUpgradeValue;
-                            break;
-                    }
+                    stat += OperationStat(upgradeCount, itemOptionUpgrades[i]);
                 }
                 else
                 {
-                    switch (item.Data.itemGrade)
-                    {
-                        case global::Data.ItemList.ItemGrade.Normal:
-                            stat += level * itemOptionUpgrades[i].normalUpgradeValue;
-                            break;
-                        case global::Data.ItemList.ItemGrade.Rare:
-                            stat += level * itemOptionUpgrades[i].rareUpgradeValue;
-                            break;
-                        case global::Data.ItemList.ItemGrade.Epic:
-                            stat += level * itemOptionUpgrades[i].epicUpgradeValue;
-                            break;
-                    }
+                    stat += OperationStat(level, itemOptionUpgrades[i]);
                 }
+
+                //== 계산을 진행한 만큼 회수 제외
+                level -= itemOptionUpgrades[i].upgradeBelowLimit;
+            }
+
+            //== 테이블 내의 데이터 제한 보다 높은 레벨 보유
+            //== 마지막 증가값으로 남은 레벨 처리
+            if(0 < level)
+            {
+                stat += OperationStat(level, itemOptionUpgrades[itemOptionUpgrades.Count - 1]);
             }
 
             return stat;
         }
         #endregion
+        public void UpdateHasItemStat()
+        {
+            Dictionary<string, int> values = DictionaryPool<string, int>.Get();
+
+            foreach(var key in acquired.Keys)
+            {
+                foreach(var itemID in acquired[key])
+                {
+                    Item item = items[itemID];
+                    int stat = GetItemStat(item);
+                    string optionKey = OptionKeyClassification(item.Data.itemOptionType);
+
+                    if (!values.ContainsKey(optionKey))
+                    {
+                        values.Add(optionKey, 0);
+                    }
+
+                    values[optionKey] += stat;
+                }
+            }
+
+            //== 능력치 총합 업데이트
+            int combatPower = 0;
+            foreach(var key in values.Keys)
+            {
+                this.value.Change(key, values[key]);
+                combatPower += values[key];
+            }
+            value.Change("CombatPower", combatPower);
+        }
+
+        public string OptionKeyClassification(global::Data.ItemList.ItemOptionType type)
+        {
+            switch (type)
+            {
+                case global::Data.ItemList.ItemOptionType.AttackIncrease: return "Attack";
+                case global::Data.ItemList.ItemOptionType.DefenseIncrease: return "Defense";
+                case global::Data.ItemList.ItemOptionType.HpIncrease: return "Health";
+                default: return string.Empty;
+            }
+        }
 
         private ItemGrade GetRandomGachaGrade(global::Data.GachaGradeInfo info)
         {
