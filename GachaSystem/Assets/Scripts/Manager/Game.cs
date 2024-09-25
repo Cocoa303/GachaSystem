@@ -25,9 +25,9 @@ namespace Manager
             maxMoneyLimit = Data.Instance.GlobalValue("n_MaxMoneyLimit").value;
             remainedMoney = 0.0f;
 
-            Data.Instance.Goods.InsertCallback("Save Money", OnSaveMoneyCallback);
+            Data.Instance.Values.InsertCallback("Save Money", OnSaveMoneyCallback);
 
-            OnSaveMoneyCallback(Data.Instance.Goods.Get("Save Money"));
+            OnSaveMoneyCallback(Data.Instance.Values.Get("Save Money"));
         }
 
         private void OnSaveMoneyCallback(long saveMoney)
@@ -58,7 +58,7 @@ namespace Manager
                     int saveCount = (int)remainedMoney;
                     remainedMoney -= saveCount;
 
-                    Data.Instance.Goods.Add("Save Money", saveCount);
+                    Data.Instance.Values.Add("Save Money", saveCount);
                 }
             }
 
