@@ -35,6 +35,15 @@ namespace UI
 
             //== 초기 세팅을 위함.
             OnSaveMoneyCallback(Manager.Data.Instance.Values.Get("Save Money"));
+
+            saveMoneyGetTrigger.onClick.AddListener(OnClickEvent);
+        }
+
+        private void OnClickEvent()
+        {
+            long money = Manager.Data.Instance.Values.Get("Save Money");
+            Manager.Data.Instance.Values.Use("Save Money", money);
+            Manager.Data.Instance.Values.Add("Money", money);
         }
 
         private void OnSaveMoneyCallback(long saveMoney)
