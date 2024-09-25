@@ -59,6 +59,11 @@ namespace UI
             else
             {
                 //== getable
+                if (saveMoneyGetTrigger.enabled == false)
+                {
+                    //== 비활성화 상태에서 활성화 되었을때 사운드 출력
+                    Manager.Sound.Instance.PlaySound("RefillMoneyEnable", -1, false);
+                }
                 notice.SetActive(true);
                 saveMoneyGetTrigger.enabled = true;
             }

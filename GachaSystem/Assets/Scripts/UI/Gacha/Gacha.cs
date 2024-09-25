@@ -31,6 +31,9 @@ namespace UI
         [SerializeField] Transform rewardParent;
         [SerializeField, ReadOnly] List<GachaReward> rewardSlots;
         [SerializeField] GameObject rewardPanel;
+
+        private WaitForSeconds wait = new WaitForSeconds(0.1f);
+        private WaitForSeconds overDelay = new WaitForSeconds(0.2f);
         #endregion
 
         [SerializeField] Control.UI.Tap<ItemType> tapControl;
@@ -184,11 +187,13 @@ namespace UI
             rewardPanel.SetActive(true);
 
             //== 연출
-            WaitForSeconds wait = new WaitForSeconds(0.05f);
+            yield return overDelay;
             foreach (var slot in rewardSlots)
             {
                 slot.gameObject.SetActive(true);
                 slot.transform.SetAsLastSibling();
+
+                Manager.Sound.Instance.PlaySound("GachaSlotOpen", -1, false);
                 yield return wait;
             }
 

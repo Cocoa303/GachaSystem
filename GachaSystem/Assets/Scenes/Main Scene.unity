@@ -7363,21 +7363,21 @@ MonoBehaviour:
       type: 0
       audio: {fileID: 8300000, guid: d1cc24151fbe73b47ae97e424ee56aa0, type: 3}
       priority: 0
-      defaultVolum: 0.5
-  - key: GoldDecrease
+      defaultVolum: 0.25
+  - key: GachaSlotOpen
     value:
-      id: GoldDecrease
+      id: GachaSlotOpen
       type: 1
       audio: {fileID: 8300000, guid: d26ee8262b4de8440aae6dddc4dec4e1, type: 3}
       priority: 0
       defaultVolum: 0.5
-  - key: GoldIncrease
+  - key: RefillMoneyEnable
     value:
-      id: GoldIncrease
+      id: RefillMoneyEnable
       type: 1
       audio: {fileID: 8300000, guid: 3d54b70e1bac64941ab91381c53a8d75, type: 3}
       priority: 0
-      defaultVolum: 0.5
+      defaultVolum: 0.3
   - key: PowerClick
     value:
       id: PowerClick
@@ -7398,7 +7398,7 @@ MonoBehaviour:
       type: 1
       audio: {fileID: 8300000, guid: 7aec1f27b0a7c9e469a258d45c49cd59, type: 3}
       priority: 0
-      defaultVolum: 0.3
+      defaultVolum: 0.2
   bgm:
     onProductionUpdate: 0
     production: 0
@@ -9027,6 +9027,7 @@ GameObject:
   - component: {fileID: 2145040113}
   - component: {fileID: 2145040112}
   - component: {fileID: 2145040111}
+  - component: {fileID: 2145040114}
   m_Layer: 0
   m_Name: Close
   m_TagString: Untagged
@@ -9147,6 +9148,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2145040109}
   m_CullTransparentMesh: 1
+--- !u!114 &2145040114
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2145040109}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 714c04884cdb7b740bf5d4f2acfabc23, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trigger: {fileID: 2145040111}
+  soundKey: Click
+  volume: -1
+  isLoop: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
