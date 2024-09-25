@@ -44,11 +44,13 @@ namespace UI
             {
                 this.icon.color = Color.white;
                 eventLock.SetActive(false);
+                trigger.enabled = true;
             }
             else
             {
                 this.icon.color = new Color(1, 1, 1, 0.7f);
                 eventLock.SetActive(true);
+                trigger.enabled = false;
             }
         }
 
