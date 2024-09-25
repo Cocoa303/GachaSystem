@@ -18,6 +18,8 @@ namespace UI
         [SerializeField, ReadOnly] List<ItemSlot> itemSlots;
 
         [SerializeField, ReadOnly] Util.Inspector.UniDictionary<ItemGrade, Color> gradeColor;
+
+        [SerializeField] ItemPopup itemPopup;
         #endregion
 
         #region Trigger Reference
@@ -103,7 +105,7 @@ namespace UI
                     Manager.Resource.Instance.GetSprite("UI", $"ItemSlot_{items[i].Data.itemGrade.ToString()}"),
                     $"Lv.{items[i].Level}",
                     $"{items[i].HasCount} / {levelUpNeedCount}",
-                    items[i].HasCount / levelUpNeedCount,
+                    (float)items[i].HasCount / levelUpNeedCount,
                     gradeColor[items[i].Data.itemGrade],
                     items[i].Data.itemID,
                     OpenItemPopup
@@ -115,7 +117,22 @@ namespace UI
 
         private void OpenItemPopup(object id)
         {
+            int itemID = (int)id;
+            var item = Manager.Data.Instance.GetItem(itemID);
+            int levelUpNeedCount = Manager.Data.Instance.GetItemUpgradeNeedCount(item);
+            string key = Manager.Data.Instance.OptionKeyClassification(item.Data.itemOptionType);
+            int stat = Manager.Data.Instance.GetItemStat(item);
 
+            itemPopup.Open(
+                    stat,
+                    key,
+                    Manager.Resource.Instance.GetSprite(item.Data.atlasName, item.Data.iconName),
+                    Manager.Resource.Instance.GetSprite("UI", $"ItemSlot_{item.Data.itemGrade.ToString()}"),
+                    $"Lv.{item.Level}",
+                    $"{item.HasCount} / {levelUpNeedCount}",
+                    (float)item.HasCount / levelUpNeedCount,
+                    gradeColor[item.Data.itemGrade]
+                );
         }
 
         private void PressGachaTrigger(int count)
