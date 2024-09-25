@@ -136,6 +136,7 @@ namespace UI
             }
             rewardSlots.Clear();
 
+            //== 아이템 삽입
             foreach (var itemID in items.Keys)
             {
                 bool isAcquired = Manager.Data.Instance.IsAcquired(type, itemID);
@@ -159,6 +160,9 @@ namespace UI
 
             //== 재화 감소
             Manager.Data.Instance.Values.Use("Money", count * requireGachaPrice);
+
+            //== 아이템 정보 갱신
+            Manager.Data.Instance.UpdateHasItemStat();
 
             rewardPanel.SetActive(true);
 
