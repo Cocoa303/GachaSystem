@@ -156,7 +156,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 430, y: -34}
+  m_AnchoredPosition: {x: 430, y: -80}
   m_SizeDelta: {x: 164.57147, y: 164.57146}
   m_Pivot: {x: 0, y: 0.5}
 --- !u!114 &3294452
@@ -3988,7 +3988,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 424.99997, y: 238.7}
+  m_AnchoredPosition: {x: 424.99997, y: 192.7}
   m_SizeDelta: {x: -474.99997, y: 110}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &921980420
@@ -4017,7 +4017,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 1
     m_MinSize: 10
-    m_MaxSize: 60
+    m_MaxSize: 65
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -6725,7 +6725,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 594.57, y: 24}
+  m_AnchoredPosition: {x: 594.57, y: -22}
   m_SizeDelta: {x: -644.57, y: 110}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1498284898
@@ -6754,7 +6754,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 1
     m_MinSize: 10
-    m_MaxSize: 60
+    m_MaxSize: 65
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -7384,7 +7384,7 @@ MonoBehaviour:
       type: 1
       audio: {fileID: 8300000, guid: 61ab7b36904cf9b42a57ac2800517833, type: 3}
       priority: 0
-      defaultVolum: 0.3
+      defaultVolum: 0.15
   - key: Click
     value:
       id: Click
@@ -9051,8 +9051,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 496, y: 388}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 457, y: 322}
+  m_SizeDelta: {x: 128, y: 89.6}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2145040111
 MonoBehaviour:
@@ -9130,7 +9130,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 93f1f715f34346d49b60c9833836d891, type: 3}
+  m_Sprite: {fileID: 21300000, guid: e3d30ed94af09a041bc1200d6f4ad197, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
