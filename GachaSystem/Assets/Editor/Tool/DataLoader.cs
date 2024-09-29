@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Pool;
 using System.Reflection;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 
 #if UNITY_EDITOR
 namespace UnityEditor
@@ -16,6 +18,10 @@ namespace UnityEditor
         //== Scriptable Object Reference
         private string savePath = "Assets/Scripts/Data";
         private string dataPath = "Assets/Resources/Data";
+        private string enumPath = "Assets/Scripts/Common";
+
+        //== NOTE : CSV의 자료형 명명규칙에 따라 해당 부분은 수정되어야합니다.
+        //== 현재 방식은 (자료형)(변수명)으로 진행되어있습니다.
         private (string handle, string type)[] typeRules =
         {
             ("n_", "int"),
@@ -26,14 +32,13 @@ namespace UnityEditor
             ("e_", "enum")
         };
 
-        [MenuItem("Tool/Data Packing")]
+        [MenuItem("Tools/Custom/CSV Loader")]
         public static void ShowWindow()
         {
             EditorWindow window = GetWindow(typeof(DataLoader));
             window.minSize = new Vector2(500, 500);
 
         }
-
         public void OnGUI()
         {
             #region CSV File Reference
@@ -90,7 +95,7 @@ namespace UnityEditor
 
                 for (int j = 0; j < col; j++)
                 {
-                    csvData[i, j] = rowDatas[j].Replace("\r","");
+                    csvData[i, j] = rowDatas[j].Replace("\r", "");
                 }
             }
 
@@ -106,8 +111,8 @@ namespace UnityEditor
         private void Create()
         {
             StringBuilder csFile = new StringBuilder(string.Empty);
+            StringBuilder enumResult = new StringBuilder(string.Empty);
             var csv = CSVLoad();
-
 
             csFile.AppendLine("using UnityEngine;");
             if (csv.isList)
@@ -119,7 +124,7 @@ namespace UnityEditor
             csFile.AppendLine($"\t[CreateAssetMenu(fileName = \"Data\", menuName = \"Data/{csvFile.name}\")]");
             csFile.AppendLine($"\tpublic class {csvFile.name} : ScriptableObject");
             csFile.AppendLine("\t{");
-            csFile.AppendLine(MakeInfomation(2));
+            csFile.AppendLine(MakeInfomation(2, enumResult));
             csFile.AppendLine("\t}");
             csFile.AppendLine("}");
 
@@ -132,6 +137,146 @@ namespace UnityEditor
             //== CS 파일 생성
             System.IO.File.WriteAllText($"{savePath}/{csvFile.name}.cs", csFile.ToString(), Encoding.UTF8);
             AssetDatabase.Refresh();
+
+            //== Enum 폴더 검증
+            if (!System.IO.Directory.Exists(enumPath))
+            {
+                System.IO.Directory.CreateDirectory(enumPath);
+            }
+
+            //== Enum 파일 검증
+            if (enumResult.Length > 0)
+            {
+                string enumFilePath = $"{enumPath}/Enum.cs";
+                if (!System.IO.File.Exists(enumFilePath))
+                {
+                    //== Base 제작 
+                    StringBuilder enumFile = new StringBuilder();
+                    enumFile.AppendLine("namespace Common");
+                    enumFile.AppendLine("{");
+                    enumFile.AppendLine("\tpublic static class Enum");
+                    enumFile.AppendLine("\t{");
+                    enumFile.AppendLine(enumResult.ToString());
+                    enumFile.AppendLine("\t}");
+                    enumFile.AppendLine("}");
+
+                    System.IO.File.WriteAllText(enumFilePath, enumFile.ToString(), Encoding.UTF8);
+                    AssetDatabase.Refresh();
+                }
+                else
+                {
+                    string read = System.IO.File.ReadAllText(enumFilePath, Encoding.UTF8);
+                    Dictionary<string, List<string>> datas = new Dictionary<string, List<string>>();
+
+                    //== 파일 내용을 분해하여 자료화함
+                    string[] pack = read.Split("public enum ");
+                    if (pack.Length > 0)
+                    {
+                        //== 0 Index is : namespace Common { public static class Enum
+                        for (int i = 1; i < pack.Length; i++)
+                        {
+                            string data = System.Text.RegularExpressions.Regex.Replace(pack[i], "({|}|,)", "");
+                            string[] element = data.Split('\n');
+
+                            for (int trim = 0; trim < element.Length; trim++)
+                            {
+                                element[trim] = element[trim].Trim();
+                            }
+
+                            string header = element[0];
+                            datas.Add(header, new List<string>());
+                            for (int elementIndex = 1; elementIndex < element.Length; elementIndex++)
+                            {
+                                datas[header].Add(element[elementIndex]);
+                            }
+                        }
+                    }
+
+                    string[] makePack = enumResult.ToString().Split("public enum ");
+                    if (makePack.Length > 0)
+                    {
+                        //== 0 Index is : namespace Common { public static class Enum
+                        for (int i = 1; i < makePack.Length; i++)
+                        {
+                            string data = System.Text.RegularExpressions.Regex.Replace(makePack[i], "({|}|,)", "");
+                            string[] element = data.Split('\n');
+
+                            for (int trim = 0; trim < element.Length; trim++)
+                            {
+                                element[trim] = element[trim].Trim();
+                            }
+
+                            string header = element[0];
+                            if (datas.ContainsKey(header))
+                            {
+                                List<string> doesntExist = new List<string>();
+                                for (int elementIndex = 1; elementIndex < element.Length; elementIndex++)
+                                {
+                                    if (!datas[header].Contains(element[elementIndex]))
+                                    {
+                                        datas[header].Add(element[elementIndex]);
+                                    }
+                                }
+                                foreach (var item in datas[header])
+                                {
+                                    if (!element.Contains(item))
+                                    {
+                                        doesntExist.Add(item);
+                                    }
+                                }
+
+                                if (doesntExist.Count > 0)
+                                {
+                                    StringBuilder log = new StringBuilder();
+                                    log.AppendLine($"{header}에서 아래 항목이 존재하나, CSV 파일에서 찾을수 없습니다.");
+                                    foreach (var item in doesntExist)
+                                    {
+                                        log.AppendLine(item);
+                                    }
+
+                                    Debug.Log(log.ToString());
+                                }
+                            }
+                            else
+                            {
+                                datas.Add(header, new List<string>());
+                                for (int elementIndex = 1; elementIndex < element.Length; elementIndex++)
+                                {
+                                    datas[header].Add(element[elementIndex]);
+                                }
+                            }
+                        }
+                    }
+
+                    //== 파일 제작
+                    StringBuilder enumFile = new StringBuilder();
+                    enumFile.AppendLine("namespace Common");
+                    enumFile.AppendLine("{");
+                    enumFile.AppendLine("\tpublic static class Enum");
+                    enumFile.AppendLine("\t{");
+                    foreach (var header in datas.Keys)
+                    {
+                        enumFile.AppendLine($"\t\tpublic enum {header}");
+                        enumFile.AppendLine($"\t\t{{");
+                        foreach (var item in datas[header])
+                        {
+                            if (item.CompareTo(string.Empty) != 0)
+                            {
+                                enumFile.Append($"\t\t\t{item},\n");
+                            }
+                        }
+
+                        //== 마지막 ',\n' 제거
+                        enumFile = enumFile.Remove(enumFile.Length - 2, 2);
+                        enumFile.AppendLine($"\n\t\t}}");
+                    }
+                    enumFile.AppendLine("\t}");
+                    enumFile.AppendLine("}");
+
+                    System.IO.File.WriteAllText(enumFilePath, enumFile.ToString(), Encoding.UTF8);
+                    AssetDatabase.Refresh();
+                }
+            }
 
             //== 데이터 폴더 검증 및 재생성
             if (!System.IO.Directory.Exists(dataPath))
@@ -149,8 +294,6 @@ namespace UnityEditor
             }
             System.IO.Directory.CreateDirectory(scriptablePath);
 
-
-            
             var variables = ListPool<string>.Get();
             for (int col = 0; col < csv.col; col++)
             {
@@ -212,7 +355,7 @@ namespace UnityEditor
 
                         //== 값이 내부 타입으로 변환 가능할 경우에 추가
                         System.Type listElementType = fieldType.GetGenericArguments()[0];
-                        if(listElementType.IsEnum)
+                        if (listElementType.IsEnum)
                         {
                             object convertedValue = System.Enum.Parse(listElementType, value, true);
                             list.Add(convertedValue);
@@ -248,7 +391,7 @@ namespace UnityEditor
 
             EditorGUILayout.LabelField(MakeInfomation(), textAreaStyle);
         }
-        private string MakeInfomation(int tapCount = 0)
+        private string MakeInfomation(int tapCount = 0, StringBuilder enumResult = null)
         {
             if (csvFile != null)
             {
@@ -274,11 +417,11 @@ namespace UnityEditor
 
                     string type = GetVariableType(variable[i], isList);
                     if (type == string.Empty) continue;
-                    
+
                     if (type.Contains("enum"))
                     {
                         enumIndex.Add(i);
-                        result.AppendLine(($"{Tap(tapCount)}public {GetVariableName(variable[i], false, isList)} {GetVariableName(variable[i])};\t // {explanation[i]}"));
+                        result.AppendLine(($"{Tap(tapCount)}public {GetVariableName(variable[i], false, isList, true)} {GetVariableName(variable[i])};\t // {explanation[i]}"));
                     }
                     else
                     {
@@ -299,7 +442,15 @@ namespace UnityEditor
                         }
 
                         string enumDefinition = GetEnumDefinition(GetVariableName(csv.data[0, enumIndex[i]], false), names, tapCount);
-                        result.AppendLine(enumDefinition);
+                        if (enumResult != null)
+                        {
+                            enumResult.AppendLine(enumDefinition);
+                        }
+                        else
+                        {
+                            result.AppendLine(enumDefinition);
+                        }
+
 
                         HashSetPool<string>.Release(names);
                     }
@@ -332,7 +483,7 @@ namespace UnityEditor
 
             return string.Empty;
         }
-        private string GetVariableName(string data, bool toLower = true, bool isList = false)
+        private string GetVariableName(string data, bool toLower = true, bool isList = false, bool isEnum = false)
         {
             string result = string.Empty;
             for (int i = 0; i < typeRules.Length; i++)
@@ -343,10 +494,20 @@ namespace UnityEditor
                     if (toLower)
                     {
                         result = char.ToLower(separated[0]) + separated.Substring(1).Trim();
+
+                        if (isEnum)
+                        {
+                            result = "Common.Enum." + result;
+                        }
                     }
                     else
                     {
                         result = separated.Trim();
+
+                        if (isEnum)
+                        {
+                            result = "Common.Enum." + result;
+                        }
                     }
                 }
             }
