@@ -4,8 +4,8 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Pool;
 
-using ItemType = Data.GachaRandomBag.GachaRewardItemType;
-using ItemGrade = Data.ItemList.ItemGrade;
+using ItemType = Common.Enum.GachaRewardItemType;
+using ItemGrade = Common.Enum.ItemGrade;
 
 
 namespace UI

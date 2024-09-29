@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-using ItemType = global::Data.GachaRandomBag.GachaRewardItemType;
+using ItemType = global::Common.Enum.GachaRewardItemType;
 
 [System.Serializable]
 public class Item

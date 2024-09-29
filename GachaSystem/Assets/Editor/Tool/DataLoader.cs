@@ -2,8 +2,6 @@
 using UnityEngine;
 using UnityEngine.Pool;
 using System.Reflection;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 
 #if UNITY_EDITOR
@@ -166,7 +164,7 @@ namespace UnityEditor
                 else
                 {
                     string read = System.IO.File.ReadAllText(enumFilePath, Encoding.UTF8);
-                    Dictionary<string, List<string>> datas = new Dictionary<string, List<string>>();
+                    var datas = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<string>>();
 
                     //== 파일 내용을 분해하여 자료화함
                     string[] pack = read.Split("public enum ");
@@ -184,7 +182,7 @@ namespace UnityEditor
                             }
 
                             string header = element[0];
-                            datas.Add(header, new List<string>());
+                            datas.Add(header, new System.Collections.Generic.List<string>());
                             for (int elementIndex = 1; elementIndex < element.Length; elementIndex++)
                             {
                                 datas[header].Add(element[elementIndex]);
@@ -209,7 +207,7 @@ namespace UnityEditor
                             string header = element[0];
                             if (datas.ContainsKey(header))
                             {
-                                List<string> doesntExist = new List<string>();
+                                System.Collections.Generic.List<string> doesntExist = new System.Collections.Generic.List<string>();
                                 for (int elementIndex = 1; elementIndex < element.Length; elementIndex++)
                                 {
                                     if (!datas[header].Contains(element[elementIndex]))
@@ -239,7 +237,7 @@ namespace UnityEditor
                             }
                             else
                             {
-                                datas.Add(header, new List<string>());
+                                datas.Add(header, new System.Collections.Generic.List<string>());
                                 for (int elementIndex = 1; elementIndex < element.Length; elementIndex++)
                                 {
                                     datas[header].Add(element[elementIndex]);
@@ -274,6 +272,8 @@ namespace UnityEditor
                     enumFile.AppendLine("}");
 
                     System.IO.File.WriteAllText(enumFilePath, enumFile.ToString(), Encoding.UTF8);
+
+                    AssetDatabase.SaveAssets();
                     AssetDatabase.Refresh();
                 }
             }
@@ -283,16 +283,24 @@ namespace UnityEditor
             {
                 System.IO.Directory.CreateDirectory(dataPath);
             }
+
             string scriptablePath = dataPath + "/" + csvFile.name;
             if (System.IO.Directory.Exists(scriptablePath))
             {
-                var prevData = AssetDatabase.LoadAllAssetsAtPath(scriptablePath);
-                for (int i = 0; i < prevData.Length; i++)
+                string[] assetPaths = System.IO.Directory.GetFiles(scriptablePath, "*.asset");
+
+                //== 기존에 존재하던 파일들 제거 [ 데이터 중복과, 형식 변환 등으로 비어지는 데이터를 없게 하기 위함. ]
+                foreach (var assetPath in assetPaths)
                 {
-                    System.IO.File.Delete(scriptablePath + "/" + prevData[i].ToString());
+                    if (AssetDatabase.LoadAssetAtPath<ScriptableObject>(assetPath) != null)
+                    {
+                        AssetDatabase.DeleteAsset(assetPath);
+                    }
                 }
             }
             System.IO.Directory.CreateDirectory(scriptablePath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
 
             var variables = ListPool<string>.Get();
             for (int col = 0; col < csv.col; col++)
@@ -324,9 +332,13 @@ namespace UnityEditor
                 {
                     AssetDatabase.CreateAsset(asset, scriptablePath + "/" + assetName + ".asset");
                 }
+
+                //== 비동기 생성이 아닌, Create Asset의 특성상 새로고침 적용
+                AssetDatabase.SaveAssets();
+                AssetDatabase.Refresh();
             }
+
             AssetDatabase.SaveAssets();
-            EditorUtility.FocusProjectWindow();
             AssetDatabase.Refresh();
 
             ListPool<string>.Release(variables);
@@ -341,14 +353,14 @@ namespace UnityEditor
 
                     if (fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(System.Collections.Generic.List<>))
                     {
-                        IList list = field.GetValue(obj) as IList;
+                        System.Collections.IList list = field.GetValue(obj) as System.Collections.IList;
 
                         //== 새로운 List 인스턴스 생성
                         if (list == null)
                         {
                             System.Type elementType = fieldType.GetGenericArguments()[0]; // 제네릭의 내부 타입 추출
                             System.Type listType = typeof(System.Collections.Generic.List<>).MakeGenericType(elementType);
-                            list = (IList)System.Activator.CreateInstance(listType);
+                            list = (System.Collections.IList)System.Activator.CreateInstance(listType);
 
                             field.SetValue(obj, list);
                         }

@@ -4,8 +4,8 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Pool;
 
-using ItemType = Data.GachaRandomBag.GachaRewardItemType;
-using ItemGrade = Data.GachaRandomBag.GachaRewardGrade;
+using ItemType = Common.Enum.GachaRewardItemType;
+using ItemGrade = Common.Enum.GachaRewardGrade;
 
 namespace Manager
 {
@@ -445,11 +445,11 @@ namespace Manager
             {
                 switch (item.Data.itemGrade)
                 {
-                    case global::Data.ItemList.ItemGrade.Normal:
+                    case Common.Enum.ItemGrade.Normal:
                         return count * upgrade.normalUpgradeValue;
-                    case global::Data.ItemList.ItemGrade.Rare:
+                    case Common.Enum.ItemGrade.Rare:
                         return count * upgrade.rareUpgradeValue;
-                    case global::Data.ItemList.ItemGrade.Epic:
+                    case Common.Enum.ItemGrade.Epic:
                         return count * upgrade.epicUpgradeValue;
                     default: return 0;
                 }
@@ -523,13 +523,13 @@ namespace Manager
             value.Change("CombatPower", combatPower);
         }
 
-        public string OptionKeyClassification(global::Data.ItemList.ItemOptionType type)
+        public string OptionKeyClassification(Common.Enum.ItemOptionType type)
         {
             switch (type)
             {
-                case global::Data.ItemList.ItemOptionType.AttackIncrease: return "Attack";
-                case global::Data.ItemList.ItemOptionType.DefenseIncrease: return "Defense";
-                case global::Data.ItemList.ItemOptionType.HpIncrease: return "Health";
+                case Common.Enum.ItemOptionType.AttackIncrease: return "Attack";
+                case Common.Enum.ItemOptionType.DefenseIncrease: return "Defense";
+                case Common.Enum.ItemOptionType.HpIncrease: return "Health";
                 default: return string.Empty;
             }
         }
