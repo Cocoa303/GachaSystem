@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +13,16 @@ namespace UI
         //== Setting
         [SerializeField] bool isBold;
         [SerializeField] bool isItalic;
+
+#if UNITY_EDITOR
+        //== [ 24.09.30 ] NOTE
+        //== Editor에서 사용되는 변수 / 접근자 입니다.
+        //== 개발에 있어서 사용에 조심하여주시기 바랍니다.
+        public int editorGroupID;
+        public Text EditorOnlyGetView { get => view; }
+        public bool EditorOnlySetBold { set => isBold = value; }
+        public bool EditorOnlySetItalic { set => isItalic = value; }
+#endif
 
         public override void Initialize()
         {
